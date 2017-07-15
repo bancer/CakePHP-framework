@@ -76,6 +76,8 @@ abstract class CakeTestCase extends PHPUnit_Framework_TestCase {
  * @throws InvalidArgumentException
  */
 	public function run(PHPUnit_Framework_TestResult $result = null) {
+		$level = ob_get_level();
+
 		if (!empty($this->fixtureManager)) {
 			$this->fixtureManager->load($this);
 		}
@@ -83,6 +85,11 @@ abstract class CakeTestCase extends PHPUnit_Framework_TestCase {
 		if (!empty($this->fixtureManager)) {
 			$this->fixtureManager->unload($this);
 		}
+
+		for ($i = ob_get_level(); $i < $level; ++$i) {
+			ob_start();
+		}
+
 		return $result;
 	}
 
@@ -648,7 +655,7 @@ abstract class CakeTestCase extends PHPUnit_Framework_TestCase {
  * @deprecated 3.0.0 This is a compatibility wrapper for 1.x. It will be removed in 3.0.
  * @return void
  */
-	protected function expectException($name = 'Exception', $message = '') {
+	public function expectException($name = 'Exception', $message = '') {
 		$this->setExpectedException($name, $message);
 	}
 

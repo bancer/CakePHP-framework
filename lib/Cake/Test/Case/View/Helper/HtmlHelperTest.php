@@ -554,6 +554,40 @@ class HtmlHelperTest extends CakeTestCase {
 	}
 
 /**
+ * testBase64ImageTag method
+ *
+ * @return void
+ */
+	public function testBase64ImageTag() {
+		$this->Html->request->webroot = '';
+
+		$result = $this->Html->image('cake.icon.png', array('base64' => true));
+		$this->assertTags($result, array(
+			'img' => array(
+				'src' => 'preg:/data:image\/png;base64,(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})/',
+				'alt' => ''
+			)));
+
+		$result = $this->Html->image('/img/cake.icon.png', array('base64' => true));
+		$this->assertTags($result, array(
+			'img' => array(
+				'src' => 'preg:/data:image\/png;base64,(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})/',
+				'alt' => ''
+			)));
+	}
+
+/**
+ * testLoadConfigWrongFile method
+ *
+ * @return void
+ * @expectedException InvalidArgumentException
+ */
+	public function testBase64InvalidArgumentException() {
+		$this->Html->request->webroot = '';
+		$this->Html->image('non-existent-image.png', array('base64' => true));
+	}
+
+/**
  * test theme assets in main webroot path
  *
  * @return void
@@ -1464,6 +1498,28 @@ class HtmlHelperTest extends CakeTestCase {
 			'/a',
 			'-',
 			'Fourth'
+		);
+		$this->assertTags($result, $expected);
+
+		$this->Html->addCrumb('Zeroth', '#zeroth', array('prepend' => true));
+
+		$result = $this->Html->getCrumbs();
+		$expected = array(
+			array('a' => array('href' => '#zeroth')),
+			'Zeroth',
+			'/a',
+			'&raquo;',
+			array('a' => array('href' => '#first')),
+			'First',
+			'/a',
+			'&raquo;',
+			array('a' => array('href' => '#second')),
+			'Second',
+			'/a',
+			'&raquo;',
+			array('a' => array('href' => '#third')),
+			'Third',
+			'/a',
 		);
 		$this->assertTags($result, $expected);
 	}

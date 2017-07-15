@@ -1084,6 +1084,9 @@ class CakeEmail {
 					$name = basename($fileInfo['file']);
 				}
 			}
+			if (!isset($fileInfo['mimetype']) && function_exists('mime_content_type')) {
+				$fileInfo['mimetype'] = mime_content_type($fileInfo['file']);
+			}
 			if (!isset($fileInfo['mimetype'])) {
 				$fileInfo['mimetype'] = 'application/octet-stream';
 			}
@@ -1241,7 +1244,7 @@ class CakeEmail {
 		if (is_string($config)) {
 			if (!$this->_configInstance) {
 				if (!class_exists($this->_configClass) && !config('email')) {
-					throw new ConfigureException(__d('cake_dev', '%s not found.', APP . 'Config' . DS . 'email.php'));
+					throw new ConfigureException(__d('cake_dev', '%s not found.', CONFIG . 'email.php'));
 				}
 				$this->_configInstance = new $this->_configClass();
 			}

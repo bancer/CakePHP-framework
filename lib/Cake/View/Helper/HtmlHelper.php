@@ -20,6 +20,7 @@
 
 App::uses('AppHelper', 'View/Helper');
 App::uses('CakeResponse', 'Network');
+App::uses('File', 'Utility');
 
 /**
  * Html Helper class for easy use of HTML widgets.
@@ -172,6 +173,10 @@ class HtmlHelper extends AppHelper {
 /**
  * Adds a link to the breadcrumbs array.
  *
+ * ### Options
+ *
+ * - 'prepend' Prepend the breadcrumb to. Using this option
+ *
  * @param string $name Text for link
  * @param string $link URL for link (if empty it won't be a link)
  * @param string|array $options Link attributes e.g. array('id' => 'selected')
@@ -180,7 +185,16 @@ class HtmlHelper extends AppHelper {
  * @link https://book.cakephp.org/2.0/en/core-libraries/helpers/html.html#creating-breadcrumb-trails-with-htmlhelper
  */
 	public function addCrumb($name, $link = null, $options = null) {
-		$this->_crumbs[] = array($name, $link, $options);
+		$prepend = false;
+		if (is_array($options) && isset($options['prepend'])) {
+			$prepend = $options['prepend'];
+			unset($options['prepend']);
+		}
+		if ($prepend) {
+			array_unshift($this->_crumbs, array($name, $link, $options));
+		} else {
+			array_push($this->_crumbs, array($name, $link, $options));
+		}
 		return $this;
 	}
 
@@ -809,10 +823,13 @@ class HtmlHelper extends AppHelper {
  *   `$options['url']`.
  * - `fullBase` If true the src attribute will get a full address for the image file.
  * - `plugin` False value will prevent parsing path as a plugin
+ * - `base64` If true the src attribute will instead be a base64 data URI of the image file.
+ *    Can not be used with external links.
  *
  * @param string $path Path to the image file, relative to the app/webroot/img/ directory.
  * @param array $options Array of HTML attributes. See above for special options.
  * @return string completed img tag
+ * @throws InvalidArgumentException - if the image isn't on disk and you have requested the base64 output
  * @link https://book.cakephp.org/2.0/en/core-libraries/helpers/html.html#HtmlHelper::image
  */
 	public function image($path, $options = array()) {
@@ -827,6 +844,19 @@ class HtmlHelper extends AppHelper {
 		if (!empty($options['url'])) {
 			$url = $options['url'];
 			unset($options['url']);
+		}
+
+		if (!empty($options['base64']) && !$url) {
+			$fullPath = WWW_ROOT . $path;
+			$file = new File($fullPath, false);
+			if (!$file->exists() || !$file->readable()) {
+				throw new InvalidArgumentException(__d('cake', 'Unable to find the requested image to output as base64!'));
+			}
+
+			$base64 = base64_encode($file->read());
+			$type = $file->mime();
+			unset($options['base64']);
+			$path = sprintf('data:%s;base64,%s', $type, $base64);
 		}
 
 		$image = sprintf($this->_tags['image'], $path, $this->_parseAttributes($options));
@@ -1187,7 +1217,7 @@ class HtmlHelper extends AppHelper {
 /**
  * Load Html tag configuration.
  *
- * Loads a file from APP/Config that contains tag data. By default the file is expected
+ * Loads a file from CONFIG that contains tag data. By default the file is expected
  * to be compatible with PhpReader:
  *
  * `$this->Html->loadConfig('tags.php');`
@@ -1206,7 +1236,7 @@ class HtmlHelper extends AppHelper {
  * `$this->Html->loadConfig(array('tags.ini', 'ini'));`
  *
  * Its expected that the `tags` index will exist from any configuration file that is read.
- * You can also specify the path to read the configuration file from, if APP/Config is not
+ * You can also specify the path to read the configuration file from, if CONFIG is not
  * where the file is.
  *
  * `$this->Html->loadConfig('tags.php', APP . 'Lib' . DS);`
@@ -1227,7 +1257,7 @@ class HtmlHelper extends AppHelper {
  */
 	public function loadConfig($configFile, $path = null) {
 		if (!$path) {
-			$path = APP . 'Config' . DS;
+			$path = CONFIG;
 		}
 		$file = null;
 		$reader = 'php';

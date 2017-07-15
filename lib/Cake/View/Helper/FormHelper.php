@@ -586,6 +586,14 @@ class FormHelper extends AppHelper {
 		if (!isset($this->request['_Token']) || empty($this->request['_Token'])) {
 			return null;
 		}
+		$debugSecurity = Configure::read('debug');
+		if (isset($secureAttributes['debugSecurity'])) {
+			$debugSecurity = $debugSecurity && $secureAttributes['debugSecurity'];
+			unset($secureAttributes['debugSecurity']);
+		}
+
+		$originalFields = $fields;
+
 		$locked = array();
 		$unlockedFields = $this->_unlockedFields;
 
@@ -625,6 +633,19 @@ class FormHelper extends AppHelper {
 			'autocomplete' => 'off',
 		));
 		$out .= $this->hidden('_Token.unlocked', $tokenUnlocked);
+		if ($debugSecurity) {
+			$tokenDebug = array_merge($secureAttributes, array(
+				'value' => urlencode(json_encode(array(
+					$this->_lastAction,
+					$originalFields,
+					$this->_unlockedFields
+				))),
+				'id' => 'TokenDebug' . mt_rand(),
+				'secure' => static::SECURE_SKIP,
+			));
+			$out .= $this->hidden('_Token.debug', $tokenDebug);
+		}
+
 		return $this->Html->useTag('hiddenblock', $out);
 	}
 
@@ -1218,11 +1239,18 @@ class FormHelper extends AppHelper {
 			$type = $fieldDef['type'];
 			$primaryKey = $this->fieldset[$modelKey]['key'];
 			$map = array(
-				'string' => 'text', 'datetime' => 'datetime',
-				'boolean' => 'checkbox', 'timestamp' => 'datetime',
-				'text' => 'textarea', 'time' => 'time',
-				'date' => 'date', 'float' => 'number',
-				'integer' => 'number', 'decimal' => 'number',
+				'string' => 'text',
+				'datetime' => 'datetime',
+				'boolean' => 'checkbox',
+				'timestamp' => 'datetime',
+				'text' => 'textarea',
+				'time' => 'time',
+				'date' => 'date',
+				'float' => 'number',
+				'integer' => 'number',
+				'smallinteger' => 'number',
+				'tinyinteger' => 'number',
+				'decimal' => 'number',
 				'binary' => 'file'
 			);
 
