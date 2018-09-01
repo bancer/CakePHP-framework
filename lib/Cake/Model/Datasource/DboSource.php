@@ -341,7 +341,7 @@ class DboSource extends DataSource {
  * @param string|array $data String to be prepared for use in an SQL statement.
  * @param string $column The column datatype into which this data will be inserted.
  * @param bool $null Column allows NULL values
- * @return string Quoted and escaped data
+ * @return string|array Quoted and escaped data
  */
 	public function value($data, $column = null, $null = true) {
 		if (is_array($data) && !empty($data)) {
