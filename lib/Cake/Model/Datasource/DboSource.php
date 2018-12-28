@@ -88,28 +88,28 @@ class DboSource extends DataSource {
 /**
  * String to hold how many rows were affected by the last SQL operation.
  *
- * @var string
+ * @var string|false
  */
 	public $affected = null;
 
 /**
  * Number of rows in current resultset
  *
- * @var int
+ * @var int|false
  */
 	public $numRows = null;
 
 /**
  * Time the last query took
  *
- * @var int
+ * @var int|false
  */
 	public $took = null;
 
 /**
  * Result
  *
- * @var array|PDOStatement
+ * @var array|PDOStatement|bool
  */
 	protected $_result = null;
 
@@ -153,7 +153,7 @@ class DboSource extends DataSource {
 /**
  * A reference to the physical connection of this DataSource
  *
- * @var array
+ * @var PDO
  */
 	protected $_connection = null;
 
@@ -338,10 +338,10 @@ class DboSource extends DataSource {
 /**
  * Returns a quoted and escaped string of $data for use in an SQL statement.
  *
- * @param string $data String to be prepared for use in an SQL statement
+ * @param string|array $data String to be prepared for use in an SQL statement.
  * @param string $column The column datatype into which this data will be inserted.
  * @param bool $null Column allows NULL values
- * @return string Quoted and escaped data
+ * @return string|array Quoted and escaped data
  */
 	public function value($data, $column = null, $null = true) {
 		if (is_array($data) && !empty($data)) {
@@ -482,7 +482,8 @@ class DboSource extends DataSource {
  * @param string $sql SQL statement
  * @param array $params list of params to be bound to query
  * @param array $prepareOptions Options to be used in the prepare statement
- * @return mixed PDOStatement if query executes with no problem, true as the result of a successful, false on error
+ * @return PDOStatement|bool PDOStatement if query executes with no problem,
+ * true as the result of a successful, false on error
  * query returning no rows, such as a CREATE statement, false otherwise
  * @throws PDOException
  */
@@ -567,7 +568,7 @@ class DboSource extends DataSource {
 /**
  * DataSource Query abstraction
  *
- * @return resource Result resource identifier.
+ * @return bool|array Result resource identifier.
  */
 	public function query() {
 		$args = func_get_args();
@@ -696,7 +697,7 @@ class DboSource extends DataSource {
  * @param string $sql SQL statement
  * @param array|bool $params Either parameters to be bound as values for the SQL statement,
  *  or a boolean to control query caching.
- * @param array $options additional options for the query.
+ * @param array|string $options additional options for the query.
  * @return bool|array Array of resultset rows, or false if no rows matched
  */
 	public function fetchAll($sql, $params = array(), $options = array()) {
@@ -906,7 +907,7 @@ class DboSource extends DataSource {
  *
  * @param mixed $data Either a string with a column to quote. An array of columns to quote or an
  *   object from DboSource::expression() or DboSource::identifier()
- * @return string SQL field
+ * @return string|array SQL field
  */
 	public function name($data) {
 		if (is_object($data) && isset($data->type)) {
@@ -1020,7 +1021,7 @@ class DboSource extends DataSource {
 		}
 		if (PHP_SAPI !== 'cli') {
 			$controller = null;
-			$View = new View($controller, false);
+			$View = new View($controller);
 			$View->set('sqlLogs', array($this->configKeyName => $log));
 			echo $View->element('sql_dump', array('_forced_from_dbo_' => true));
 		} else {
@@ -1281,7 +1282,7 @@ class DboSource extends DataSource {
  *
  * The primary model is always excluded, because the filtering is later done by Model::_filterResults().
  *
- * @param array &$resultSet Reference of resultset to be filtered.
+ * @param array|bool &$resultSet Reference of resultset to be filtered.
  * @param Model $Model Instance of model to operate against.
  * @param array $filtered List of classes already filtered, to be skipped.
  * @return array Array of results that have been filtered through $Model->afterFind.

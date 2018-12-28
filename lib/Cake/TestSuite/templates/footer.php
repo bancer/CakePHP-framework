@@ -27,7 +27,7 @@
 		<?php
 			App::uses('View', 'View');
 			$null = null;
-			$View = new View($null, false);
+			$View = new View($null);
 			echo $View->element('sql_dump');
 		?>
 	</div>
