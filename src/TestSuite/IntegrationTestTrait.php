@@ -323,7 +323,7 @@ trait IntegrationTestTrait
      */
     public function configRequest(array $data)
     {
-        $this->_request = $data + $this->_request;
+        $this->_requestData = array_merge_recursive($data, $this->_requestData);
     }
 
     /**
